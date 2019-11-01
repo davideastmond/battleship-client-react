@@ -20,3 +20,28 @@
 .App-link {
   color: #09d3ac;
 }
+
+#login-email-input {
+  margin: 0.5em;
+}
+
+.center-div {
+  margin-left: 10%;
+  margin-right: 10%;
+  margin-top: 10%;
+  padding: 0.5em;
+
+  border-style: solid;
+  border-radius: 5px;
+  border-width: 0.1em;
+
+  text-align: center;
+}
+
+.center-header {
+  margin-left: 40%;
+}
+
+.option-button {
+  margin: 0.5em;
+}
