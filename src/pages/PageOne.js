@@ -5,13 +5,23 @@ import axios from 'axios';
 class PageOne extends React.Component {
 
   createGameButton_click = (e) => {
-
-   
-    // axios.post('http://eastmonds.dlinkddns.com:3535/new', { email: "test@email.com" })
+    // axios.post('*', { email: "test@email.com" })
     // .then(res => {
     //   // Get a response from the request
     //   console.log(res);
     // });
+    
+    const clientSocket = new WebSocket(process.env.REACT_APP_SERVER_IP);
+    clientSocket.onopen = () => {
+      console.log("Connected to server...");
+
+      //Send some data
+      sendData({ data: 'email@email.com' }, clientSocket);
+    };
+
+    clientSocket.onmessage = (msg) => {
+      console.log(JSON.parse(msg.data));
+    };
   }
 
   joinGameButton_click = (e) => {
@@ -38,3 +48,17 @@ class PageOne extends React.Component {
 }
 
 export default PageOne;
+
+/**
+ * 
+ * @param {object} data unstringified data 
+ * @param {*} socket websocket to send data ove
+ */
+function sendData(data, socket) {
+  try {
+    const dataToSend = JSON.stringify(data);
+    socket.send(dataToSend);
+  } catch (error) {
+    console.log(error);
+  }
+}
