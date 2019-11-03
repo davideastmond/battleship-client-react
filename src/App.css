@@ -45,3 +45,12 @@
 .option-button {
   margin: 0.5em;
 }
+
+.join-button-align {
+  float: right;
+}
+
+.lobby-games-title-center {
+  margin-left: 37%;
+  margin-top: 5%;
+}
