@@ -9,6 +9,7 @@ class PageOne extends React.Component {
     toLobby: false,
     gamesList:[]
   }
+  
   createGameButton_click = (e) => {
     const serverIP = process.env.REACT_APP_HTTP_SERVER_IP
     const userNameEmail = document.getElementById("login-email-input").value;
@@ -22,10 +23,13 @@ class PageOne extends React.Component {
     .then(res => {
       // Get a response from the request
       // call a function from the parent component to navigate?
-      console.log(res.data);
       this.setState(() => ({
         toGamePage : true
       }));
+
+      // Store the gameID in sessionStorage
+      const gameID = res.data.gameID;
+      sessionStorage.setItem('gameID', gameID);
     });
   }
 
@@ -39,10 +43,13 @@ class PageOne extends React.Component {
       return;
     }
 
+    // Store the user e-mail in session storage
+    sessionStorage.setItem('email', userNameEmail);
+
     // Get a list of games from the server
     axios.get(serverIP + "/games", { email: userNameEmail })
     .then((res) => {
-      console.log(JSON.parse(res.data.games))
+      //console.log(JSON.parse(res.data.games))
       if(res.data.games) {
         this.setState(()=> ({
           gamesList : JSON.parse(res.data.games),
@@ -80,12 +87,10 @@ class PageOne extends React.Component {
     return(
       <div>
         <div>
-        <h1 className="center-header"> BattleShip </h1>
+          <h1 className="center-header"> BattleShip </h1>
         </div>
           {loginPage}
-       
           {gameLobby}
-      
       </div>
     );
   }
