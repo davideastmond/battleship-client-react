@@ -7,7 +7,8 @@ class PageOne extends React.Component {
   state = {
     toGamePage: false,
     toLobby: false,
-    gamesList:[]
+    gamesList:[],
+    errorStatus: { status : false, message : ""}
   }
   
   createGameButton_click = (e) => {
@@ -16,7 +17,7 @@ class PageOne extends React.Component {
 
     if (!userNameEmail || userNameEmail === "") {
       // Show some error
-      alert("Enter an e-mail address");
+      this.setErrorMessage("Enter an e-mail address");
       return;
     }
     axios.post( serverIP + "/game/new", { email: userNameEmail })
@@ -33,13 +34,13 @@ class PageOne extends React.Component {
     });
   }
 
-  joinGameButton_click = (e) => {
+  joinGameButton_click = async (e) => {
     const serverIP = process.env.REACT_APP_HTTP_SERVER_IP
     const userNameEmail = document.getElementById("login-email-input").value;
 
     if (!userNameEmail || userNameEmail === "") {
       // Show some error
-      alert("Enter an e-mail address");
+      this.setErrorMessage("Enter an e-mail address");
       return;
     }
 
@@ -47,28 +48,46 @@ class PageOne extends React.Component {
     sessionStorage.setItem('email', userNameEmail);
 
     // Get a list of games from the server
-    axios.get(serverIP + "/games", { email: userNameEmail })
-    .then((res) => {
-      //console.log(JSON.parse(res.data.games))
-      if(res.data.games) {
-        this.setState(()=> ({
-          gamesList : JSON.parse(res.data.games),
-          toLobby: true
-        }))
-      }
-    })
-  }
-  render () {
+    const res = await axios.get(serverIP + "/games", { email: userNameEmail })
 
+    if(res.data.games) {
+      this.setState(()=> ({
+        gamesList : JSON.parse(res.data.games),
+        toLobby: true
+      }))
+    }
+  }
+
+  setErrorMessage(msg) {
+    this.setState(() => ({
+      errorStatus: {status: true, message: msg }
+    }))
+  }
+
+  render () {
     if (this.state.toGamePage) {
       return <Redirect to='/game' />
     }
-
     let gameLobby;
     let loginPage;
+    let errorMessage;
+
+    if (this.state.errorStatus.status) {
+      // Cause an error message to display
+      errorMessage = <div className="div-span-error-message">
+                      <i className="fas fa-exclamation-circle error-padding"></i>
+                      <p className="error-padding">{this.state.errorStatus.message}</p>
+                    </div>
+    }
     if (this.state.toLobby) {
-      gameLobby = <div><div className="lobby-games-title-center"><h1>Available Games</h1> </div>
-        <div><Lobby gamesList={this.state.gamesList} /></div> </div>
+      gameLobby = <div>
+                    <div className="lobby-games-title-center">
+                      <h1>Available Games</h1> 
+                    </div>
+                    <div>
+                     <Lobby gamesList={this.state.gamesList} />
+                    </div> 
+                  </div>
       loginPage = <div></div>
       
     } else {
@@ -78,6 +97,7 @@ class PageOne extends React.Component {
                     <label className="lead" for="login-email-input"> Email: </label>
                     <input id="login-email-input" type="email"/>
                     <div>
+                      {errorMessage}
                       <button type="button" id="create-game-button" className ="btn btn-success option-button" onClick={this.createGameButton_click}> Create Game </button>
                       <button type="button" id="join-game-button" className="btn btn-primary option-button" onClick={this.joinGameButton_click}> Join Game </button>
                     </div>
