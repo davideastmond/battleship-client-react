@@ -20,10 +20,27 @@ class Game extends React.Component {
   componentDidMount = () => {
     // Establish a connection to the server via web socket then update the state
     // When an opponent joins
-    console.log(this.props.location.state)
-    this.setState(() => ({
-      gameGuestMode: this.props.location.state.guestMode || false
-    }))
+    
+    if (!this.props.location.state) {
+      
+      this.setState( ()=> ({
+        
+        gameGuestMode: false
+      }))
+    } else {
+      if (this.props.location.state.guestMode) {
+        
+        this.setState(()=> ({
+          gameGuestMode: true
+        }))
+      } else {
+        
+        this.setState( ()=> ({
+          gameGuestMode: false
+        }))
+      }
+    }
+    
     this.socket = new WebSocket(process.env.REACT_APP_SOCKET_SERVER_IP);
 
     this.socket.onopen = () => {
@@ -34,20 +51,20 @@ class Game extends React.Component {
 
       // We have to distinguish if we're in guest mode
       // Get the gameID from sessionStorage
-      const gameID = sessionStorage.getItem('gameID');
+      let gameID = sessionStorage.getItem('gameID');
       if (!gameID) {
-        throw "GameID is null or undefined";
+        gameID = this.props.location.state.gameID;
       }
       // Send some message to initialize
       console.log("Guest mode currently", this.state.gameGuestMode)
       if(!this.state.gameGuestMode) {
+        
         this.sendMessageToServer('game_start_waiting', gameID);
       } else {
         // We're in guest mode, send a different socket message
-        this.sendMessageToServer('user_join_existing_game', { 
-          email: this.props.location.state.userID, 
-          gameID: this.props.location.state.gameID })
-          console.log("We're in guest mode. Sent data to server");
+        
+        this.sendMessageToServer('user_join_existing_game', { gameID: gameID, 
+          email: this.props.location.state.userID })
       }
     }
 
@@ -61,7 +78,23 @@ class Game extends React.Component {
   processMessageFromServer = (data) => {
     const pData = JSON.parse(data);
 
-    
+    switch (pData.type) {
+      // DO something based on type
+      case "ok-response":
+        console.log("Got SERVER RESPONSE OK", pData)
+        break;
+      case "ok-existing-game-joined" :
+        console.log("GAME JOINED SERVERDATA", pData)
+        break;
+      case "server-error":
+        alert(pData.message);
+        break;
+      case "server-message":
+        console.log(pData.message);
+        break;
+      default:
+        console.log('Some other undefined result', pData);
+    }
   }
 
   sendMessageToServer = (type, msg) => {
