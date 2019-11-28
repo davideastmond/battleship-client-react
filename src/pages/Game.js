@@ -22,16 +22,15 @@ class Game extends React.Component {
     // When an opponent joins
     
     if (!this.props.location.state) {
-      
       this.setState( ()=> ({
-        
         gameGuestMode: false
       }))
     } else {
       if (this.props.location.state.guestMode) {
         
         this.setState(()=> ({
-          gameGuestMode: true
+          gameGuestMode: true,
+          gameState: 1
         }))
       } else {
         
@@ -67,12 +66,18 @@ class Game extends React.Component {
           email: this.props.location.state.userID })
       }
     }
-
     this.socket.onmessage = (e) => {
       // Handles messages from the game server
       this.processMessageFromServer(e.data);
       console.log("Got some message from the server.");
     }
+
+    this.socket.onclose = (e) => {
+      this.setState(()=> ({
+        connectedToServer: false
+      }))
+    }
+    
   }
 
   processMessageFromServer = (data) => {
@@ -90,7 +95,16 @@ class Game extends React.Component {
         alert(pData.message);
         break;
       case "server-message":
-        console.log(pData.message);
+        console.log("got a server message!", pData.message);
+        console.log("Data", pData);
+
+        if (pData.message === 'game-start') { 
+          if (this.state.gameState === 0) {
+            this.setState(()=> ({
+              gameState: 1
+            }))
+          }
+        }
         break;
       default:
         console.log('Some other undefined result', pData);
@@ -106,6 +120,7 @@ class Game extends React.Component {
 
   render () {
     let connectedToServerMessage;
+    let gameBoardMessage;
     if (this.state.connectedToServer) {
       connectedToServerMessage =
       <div>
@@ -126,6 +141,14 @@ class Game extends React.Component {
     } else if (this.state.gameState === 1 ) {
       // Player is joined refresh and show an empty game board where players
       // Can place their ships on the board
+      gameBoardMessage = <div>
+        <p>Game Board will appear here because game mode is 1</p>
+      </div>
+      return (
+        <div>
+          {gameBoardMessage}
+        </div>
+      )
     }
   }
 }
